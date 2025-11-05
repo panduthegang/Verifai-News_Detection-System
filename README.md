@@ -352,13 +352,13 @@ The passionate minds behind Verifai:
 - GitHub: [panduthegang](https://github.com/panduthegang)
 - LinkedIn: [Harsh Rathod](https://www.linkedin.com/in/harsh-rathod-2591b0292/)
 
-**Saachi Desai** - *UI/UX Designer*
+**Durvesh Shelar** - *UI/UX Designer*
 - Crafts intuitive and engaging interfaces
 - Combines visual aesthetics with user-centered design
 - Enhances overall product experience through thoughtful design
-- Contact: saachidesai09@gmail.com
-- GitHub: [panduthegang](https://github.com/SaachiDesao)
-- LinkedIn: [Saachi Desai](https://www.linkedin.com/in/saachi-desai-09621a320/)
+- Contact: durveshshelar@gmail.com
+- GitHub: [DURVXSH](https://github.com/DURVXSH)
+- LinkedIn: [Durvesh Shelar](https://www.linkedin.com/in/durvesh-shelar-334b02291/)
 
 ## 🙏 Acknowledgments
 
