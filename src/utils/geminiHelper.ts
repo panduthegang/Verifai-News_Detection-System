@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export const improveText = async (text: string): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     
     const prompt = `You are a helpful writing assistant. Please improve the following text by:
 1. Fixing any grammar or spelling errors
@@ -36,7 +36,7 @@ Provide ONLY the improved text without any explanations or additional comments.`
 
 export const suggestReply = async (originalPost: string, previousComments: string[] = []): Promise<string> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     
     const prompt = `You are a helpful AI assistant. Please suggest a thoughtful and engaging reply to the following social media post. The reply should be:
 1. Relevant to the original post
@@ -76,7 +76,7 @@ export const moderateContent = async (text: string): Promise<{
   suggestedRevision?: string;
 }> => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     
     const prompt = `You are a content moderator. Please analyze the following text for appropriateness and provide a JSON response with these fields:
 - isAppropriate: boolean indicating if the content is suitable for a professional social platform
