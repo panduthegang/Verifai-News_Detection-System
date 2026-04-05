@@ -246,15 +246,14 @@ export const HomePage: React.FC<HomePageProps> = ({ showLanding = true }) => {
       const analysis = await analyzeText(text);
       setResult(analysis);
       
-      const newAnalysis: HistoricalAnalysis = {
-        id: crypto.randomUUID(),
+      const newAnalysis: any = {
         timestamp: new Date().toISOString(),
         text,
         result: analysis,
         statistics: analysis.statistics
       };
       
-      await saveAnalysis(user.uid, newAnalysis);
+      await saveAnalysis(user.uid, newAnalysis as HistoricalAnalysis);
       // Reload history to get the latest analysis
       await loadHistory(true);
     } catch (error) {

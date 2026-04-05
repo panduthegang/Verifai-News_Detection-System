@@ -19,12 +19,15 @@ export const saveAnalysis = async (userId: string, analysis: HistoricalAnalysis)
   try {
     // Reference the user's history subcollection in Firestore
     const userHistoryRef = collection(db, 'users', userId, 'history');
-    // Add a new document to the history subcollection with the analysis data
-    // Include the userId and a timestamp for sorting
+    
+    // Extract ID and spread the rest to avoid saving redundant or misleading 'id' inside data
+    const { id, ...analysisData } = analysis;
+    
+    // Add a new document with the analysis data and a timestamp
     await addDoc(userHistoryRef, {
-      ...analysis,
+      ...analysisData,
       userId,
-      timestamp: new Date().toISOString() // Store the current timestamp in ISO format
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     // Log the error and rethrow it for the caller to handle
@@ -71,10 +74,15 @@ export const getAnalysisHistory = async (
     const resultDocs = hasMore ? docs.slice(0, pageSize) : docs;
     
     // Map the documents to HistoricalAnalysis objects, including the document ID
-    const analyses = resultDocs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as HistoricalAnalysis));
+    const analyses = resultDocs.map(doc => {
+      const data = doc.data();
+      // Remove any internal id field if it exists in the data to avoid confusion
+      const { id, ...rest } = data as any;
+      return {
+        ...rest,
+        id: doc.id
+      } as HistoricalAnalysis;
+    });
     
     // Get the last document for next pagination
     const lastDocument = resultDocs.length > 0 ? resultDocs[resultDocs.length - 1] : null;
