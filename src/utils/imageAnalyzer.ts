@@ -73,7 +73,7 @@ export const analyzeImage = async (imageData: string): Promise<AnalysisResult> =
     }
 
     // Initialize the model
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Prepare the image data
     const imageFile = {
@@ -92,17 +92,16 @@ export const analyzeImage = async (imageData: string): Promise<AnalysisResult> =
     5. Keep numbers, dates, and special characters intact
     6. Only include the actual text content, no descriptions or explanations
     7. Use proper punctuation and formatting`;
-    
+
     const extractionResult = await model.generateContent([extractionPrompt, imageFile]);
     let extractedText = extractionResult.response.text();
 
     // If language is not English, translate the extracted text
     if (i18n.language !== 'en') {
-      const translationPrompt = `Translate the following English text to ${
-        i18n.language === 'hi' ? 'Hindi' : 
-        i18n.language === 'gu' ? 'Gujarati' :
-        i18n.language === 'mr' ? 'Marathi' : 'English'
-      }. Follow these rules:
+      const translationPrompt = `Translate the following English text to ${i18n.language === 'hi' ? 'Hindi' :
+          i18n.language === 'gu' ? 'Gujarati' :
+            i18n.language === 'mr' ? 'Marathi' : 'English'
+        }. Follow these rules:
       1. Maintain all paragraph breaks and formatting
       2. Keep numbers, dates, and proper nouns as is
       3. Use proper punctuation
@@ -124,19 +123,16 @@ ${extractedText}`;
       .trim();
 
     // Now analyze the text in the selected language
-    const analysisPrompt = `Analyze this article text in ${
-      i18n.language === 'hi' ? 'Hindi' : 
-      i18n.language === 'gu' ? 'Gujarati' :
-      i18n.language === 'mr' ? 'Marathi' :
-      'English'
-    } language. ${
-      i18n.language !== 'en' ? `Provide all analysis output in ${
-        i18n.language === 'hi' ? 'Hindi' :
+    const analysisPrompt = `Analyze this article text in ${i18n.language === 'hi' ? 'Hindi' :
         i18n.language === 'gu' ? 'Gujarati' :
-        i18n.language === 'mr' ? 'Marathi' :
-        'English'
-      }.` : ''
-    } Provide a detailed analysis including credibility assessment, fact-checking, and content evaluation.
+          i18n.language === 'mr' ? 'Marathi' :
+            'English'
+      } language. ${i18n.language !== 'en' ? `Provide all analysis output in ${i18n.language === 'hi' ? 'Hindi' :
+          i18n.language === 'gu' ? 'Gujarati' :
+            i18n.language === 'mr' ? 'Marathi' :
+              'English'
+        }.` : ''
+      } Provide a detailed analysis including credibility assessment, fact-checking, and content evaluation.
 
 Your response must be a valid JSON object with this exact structure:
 {
@@ -165,7 +161,7 @@ Text to analyze: "${extractedText}"`;
 
     const analysisResult = await model.generateContent(analysisPrompt);
     const analysisText = analysisResult.response.text();
-    
+
     try {
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       const jsonString = jsonMatch ? jsonMatch[0] : analysisText;
@@ -175,7 +171,7 @@ Text to analyze: "${extractedText}"`;
       const words = extractedText.trim().split(/\s+/);
       const sentences = extractedText.split(/[.!?।|॥]+/).filter(Boolean);
       const paragraphs = extractedText.split(/\n\s*\n/).filter(Boolean);
-      
+
       const statistics = {
         wordCount: words.length,
         averageSentenceLength: Math.round(words.length / sentences.length),
@@ -230,7 +226,7 @@ Text to analyze: "${extractedText}"`;
 // Helper function to extract keywords - Updated for multilingual support
 function extractKeywords(text: string): string[] {
   const language = i18n.language;
-  
+
   // Stop words for different languages
   const stopWords = {
     en: new Set([
@@ -256,18 +252,18 @@ function extractKeywords(text: string): string[] {
   };
 
   const currentStopWords = stopWords[language] || stopWords.en;
-  
+
   // Split text into words - handle all scripts
   const words = text.split(/[\s,।|॥]+/);
   const wordFreq: Record<string, number> = {};
-  
+
   words.forEach(word => {
     const cleanWord = word.toLowerCase().trim();
     if (cleanWord.length > 1 && !currentStopWords.has(cleanWord)) {
       wordFreq[cleanWord] = (wordFreq[cleanWord] || 0) + 1;
     }
   });
-  
+
   return Object.entries(wordFreq)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
@@ -277,7 +273,7 @@ function extractKeywords(text: string): string[] {
 // Helper function to count emotional words - Updated for multilingual support
 function countEmotionalWords(text: string, type: 'positive' | 'negative' | 'urgent'): number {
   const language = i18n.language;
-  
+
   const emotionalWords = {
     positive: {
       en: ['good', 'great', 'excellent', 'amazing', 'wonderful', 'positive', 'success', 'breakthrough'],
@@ -298,7 +294,7 @@ function countEmotionalWords(text: string, type: 'positive' | 'negative' | 'urge
       mr: ['ताबडतोब', 'तातडीचे', 'आणीबाणी', 'संकट', 'त्वरित', 'महत्त्वाचे', 'आवश्यक', 'गंभीर']
     }
   };
-  
+
   const words = text.toLowerCase().split(/[\s,।|॥]+/);
   return words.filter(word => emotionalWords[type][language].includes(word)).length;
 }

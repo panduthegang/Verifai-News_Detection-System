@@ -11,7 +11,7 @@ const extractVideoFrames = async (videoFile: File, frameCount: number = 5): Prom
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const frames: string[] = [];
-    
+
     if (!ctx) {
       reject(new Error('Canvas context not available'));
       return;
@@ -20,7 +20,7 @@ const extractVideoFrames = async (videoFile: File, frameCount: number = 5): Prom
     video.onloadedmetadata = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const duration = video.duration;
       const interval = duration / frameCount;
       let currentFrame = 0;
@@ -50,7 +50,7 @@ const extractVideoFrames = async (videoFile: File, frameCount: number = 5): Prom
 };
 
 // Analyze video for deepfakes and content verification
-export const analyzeVideo = async (videoFile: File): Promise<AnalysisResult & { 
+export const analyzeVideo = async (videoFile: File): Promise<AnalysisResult & {
   deepfakeAnalysis: {
     isDeepfake: boolean;
     confidence: number;
@@ -65,13 +65,13 @@ export const analyzeVideo = async (videoFile: File): Promise<AnalysisResult & {
   };
 }> => {
   if (!import.meta.env.VITE_GEMINI_API_KEY) {
-    const message = i18n.language === 'gu' ? 
+    const message = i18n.language === 'gu' ?
       'API કી કન્ફિગર કરેલી નથી. કૃપા કરીને તમારી Gemini API કી .env ફાઈલમાં ઉમેરો.' :
       i18n.language === 'hi' ?
-      'API कुंजी कॉन्फ़िगर नहीं की गई है। कृपया अपनी Gemini API कुंजी .env फ़ाइल में जोड़ें।' :
-      i18n.language === 'mr' ?
-      'API की कॉन्फिगर केलेली नाही. कृपया तुमची Gemini API की .env फाइलमध्ये जोडा.' :
-      'API key not configured. Please add your Gemini API key to the .env file.';
+        'API कुंजी कॉन्फ़िगर नहीं की गई है। कृपया अपनी Gemini API कुंजी .env फ़ाइल में जोड़ें।' :
+        i18n.language === 'mr' ?
+          'API की कॉन्फिगर केलेली नाही. कृपया तुमची Gemini API की .env फाइलमध्ये जोडा.' :
+          'API key not configured. Please add your Gemini API key to the .env file.';
 
     throw new Error(message);
   }
@@ -99,8 +99,8 @@ export const analyzeVideo = async (videoFile: File): Promise<AnalysisResult & {
 
     // Extract frames for analysis
     const frames = await extractVideoFrames(videoFile, 8);
-    
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Prepare frames for Gemini analysis
     const imageFiles = frames.map(frame => ({
@@ -111,14 +111,12 @@ export const analyzeVideo = async (videoFile: File): Promise<AnalysisResult & {
     }));
 
     // Analyze for deepfakes and content
-    const deepfakePrompt = `Analyze these video frames for potential deepfake indicators and content authenticity. ${
-      i18n.language !== 'en' ? `Provide all responses in ${
-        i18n.language === 'hi' ? 'Hindi' :
-        i18n.language === 'gu' ? 'Gujarati' :
-        i18n.language === 'mr' ? 'Marathi' :
-        'English'
-      }.` : ''
-    }
+    const deepfakePrompt = `Analyze these video frames for potential deepfake indicators and content authenticity. ${i18n.language !== 'en' ? `Provide all responses in ${i18n.language === 'hi' ? 'Hindi' :
+          i18n.language === 'gu' ? 'Gujarati' :
+            i18n.language === 'mr' ? 'Marathi' :
+              'English'
+        }.` : ''
+      }
 
 Your response must be a valid JSON object with this exact structure:
 {
@@ -159,7 +157,7 @@ Look for these deepfake indicators:
 
     const result = await model.generateContent([deepfakePrompt, ...imageFiles]);
     const responseText = result.response.text().trim();
-    
+
     try {
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       const jsonString = jsonMatch ? jsonMatch[0] : responseText;
@@ -170,7 +168,7 @@ Look for these deepfake indicators:
       const words = extractedText.trim().split(/\s+/).filter(word => word.length > 0);
       const sentences = extractedText.split(/[.!?।|॥]+/).filter(Boolean);
       const paragraphs = extractedText.split(/\n\s*\n/).filter(Boolean);
-      
+
       const statistics = {
         wordCount: words.length,
         averageSentenceLength: words.length > 0 ? Math.round(words.length / Math.max(sentences.length, 1)) : 0,
@@ -221,9 +219,9 @@ Look for these deepfake indicators:
 // Helper function to extract keywords
 function extractKeywords(text: string): string[] {
   if (!text) return [];
-  
+
   const language = i18n.language;
-  
+
   const stopWords = {
     en: new Set([
       'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he',
@@ -245,17 +243,17 @@ function extractKeywords(text: string): string[] {
   };
 
   const currentStopWords = stopWords[language] || stopWords.en;
-  
+
   const words = text.split(/[\s,।|॥]+/);
   const wordFreq: Record<string, number> = {};
-  
+
   words.forEach(word => {
     const cleanWord = word.toLowerCase().trim();
     if (cleanWord.length > 1 && !currentStopWords.has(cleanWord)) {
       wordFreq[cleanWord] = (wordFreq[cleanWord] || 0) + 1;
     }
   });
-  
+
   return Object.entries(wordFreq)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)

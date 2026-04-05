@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BotMessageSquare, 
-  X, 
-  Send, 
-  Bot, 
-  User, 
+import {
+  BotMessageSquare,
+  X,
+  Send,
+  Bot,
+  User,
   Globe,
   HelpCircle
 } from 'lucide-react';
@@ -431,8 +431,8 @@ export const SideChatbot = () => {
         return FAKE_NEWS_SPREAD_INFO[i18n.language as keyof typeof FAKE_NEWS_SPREAD_INFO] || FAKE_NEWS_SPREAD_INFO.en;
       }
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-      
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
       const prompt = `You are a helpful AI assistant for the Verifai application. Here's the context about the application:
 
 ${PROJECT_INFO}
@@ -444,10 +444,10 @@ User message: ${userMessage}
 
 Important: You must not answer any questions outside the boundaries of this project, such as general knowledge unrelated to fake news detection or Verifai's features. Valid topics include how fake news spreads, team details, Verifai's features, and the community feed. If the user asks something unrelated, respond with: "I'm here to assist you with the Fake News Detection System and its features. Please ask a question related to this project!"
 
-Provide your response in ${i18n.language === 'hi' ? 'Hindi' : 
-                         i18n.language === 'gu' ? 'Gujarati' : 
-                         i18n.language === 'mr' ? 'Marathi' : 
-                         'English'}.
+Provide your response in ${i18n.language === 'hi' ? 'Hindi' :
+          i18n.language === 'gu' ? 'Gujarati' :
+            i18n.language === 'mr' ? 'Marathi' :
+              'English'}.
 
 Keep responses helpful, concise, and professional. Avoid using asterisks or Markdown formatting; use plain text.`;
 
@@ -455,13 +455,13 @@ Keep responses helpful, concise, and professional. Avoid using asterisks or Mark
       return result.response.text().replace(/\*/g, ''); // Remove any asterisks
     } catch (error) {
       console.error('Error generating response:', error);
-      return i18n.language === 'hi' ? 
+      return i18n.language === 'hi' ?
         'क्षमा करें, मुझे एक त्रुटि मिली। कृपया पुनः प्रयास करें या अपना प्रश्न दूसरे तरीके से पूछें।' :
-        i18n.language === 'gu' ? 
-        'માફ કરશો, મને એક ભૂલ મળી. કૃપા કરીને ફરીથી પ્રયાસ કરો અથવા તમારો પ્રશ્ન અલગ રીતે પૂછો.' :
-        i18n.language === 'mr' ? 
-        'क्षमस्व, मला एक त्रुटी आढळली. कृपया पुन्हा प्रयत्न करा किंवा तुमचा प्रश्न वेगळ्या पद्धतीने विचारा.' :
-        'I apologize, but I encountered an error. Please try again or rephrase your question.';
+        i18n.language === 'gu' ?
+          'માફ કરશો, મને એક ભૂલ મળી. કૃપા કરીને ફરીથી પ્રયાસ કરો અથવા તમારો પ્રશ્ન અલગ રીતે પૂછો.' :
+          i18n.language === 'mr' ?
+            'क्षमस्व, मला एक त्रुटी आढळली. कृपया पुन्हा प्रयत्न करा किंवा तुमचा प्रश्न वेगळ्या पद्धतीने विचारा.' :
+            'I apologize, but I encountered an error. Please try again or rephrase your question.';
     }
   };
 
@@ -479,15 +479,15 @@ Keep responses helpful, concise, and professional. Avoid using asterisks or Mark
       setMessages(prev => prev.slice(0, -1).concat({ role: 'assistant', content: response }));
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => prev.slice(0, -1).concat({ 
-        role: 'assistant', 
-        content: i18n.language === 'hi' ? 
+      setMessages(prev => prev.slice(0, -1).concat({
+        role: 'assistant',
+        content: i18n.language === 'hi' ?
           'क्षमा करें, एक त्रुटि हुई। कृपया पुनः प्रयास करें।' :
-          i18n.language === 'gu' ? 
-          'માફ કરશો, એક ભૂલ થઈ. કૃપા કરીને ફરીથી પ્રયાસ કરો.' :
-          i18n.language === 'mr' ? 
-          'क्षमस्व, एक त्रुटी झाली. कृपया पुन्हा प्रयत्न करा.' :
-          'I apologize, but I encountered an error. Please try again.'
+          i18n.language === 'gu' ?
+            'માફ કરશો, એક ભૂલ થઈ. કૃપા કરીને ફરીથી પ્રયાસ કરો.' :
+            i18n.language === 'mr' ?
+              'क्षमस्व, एक त्रुटी झाली. कृपया पुन्हा प्रयत्न करा.' :
+              'I apologize, but I encountered an error. Please try again.'
       }));
     } finally {
       setIsGenerating(false);
@@ -504,35 +504,33 @@ Keep responses helpful, concise, and professional. Avoid using asterisks or Mark
   const showPageTutorial = async () => {
     setShowTutorial(true);
     setIsLoading(true);
-    const pageInfo = PAGE_HELP[location.pathname as keyof typeof PAGE_HELP]?.[i18n.language as keyof typeof PAGE_HELP['/']] || 
-                    PAGE_HELP[location.pathname as keyof typeof PAGE_HELP]?.en;
-    
+    const pageInfo = PAGE_HELP[location.pathname as keyof typeof PAGE_HELP]?.[i18n.language as keyof typeof PAGE_HELP['/']] ||
+      PAGE_HELP[location.pathname as keyof typeof PAGE_HELP]?.en;
+
     try {
       if (pageInfo) {
-        const welcomeMessage = `${pageInfo.title}! 🎉\n\n${pageInfo.description}\n\n${
-          i18n.language === 'hi' ? 'शुरू करने के लिए कुछ टिप्स:' :
-          i18n.language === 'gu' ? 'શરૂ કરવા માટે કેટલીક ટિપ્સ:' :
-          i18n.language === 'mr' ? 'सुरू करण्यासाठी काही टिप्स:' :
-          'Here are some tips to get started:'
-        }\n${pageInfo.tips.map(tip => `• ${tip}`).join('\n')}\n\n${
-          i18n.language === 'hi' ? 'कृपया कोई भी प्रश्न पूछने में संकोच न करें!' :
-          i18n.language === 'gu' ? 'કૃપા કરીને કોઈપણ પ્રશ્ન પૂછવામાં સંકોચ ન કરો!' :
-          i18n.language === 'mr' ? 'कृपया कोणताही प्रश्न विचारण्यास संकोच करू नका!' :
-          'Feel free to ask me any questions!'
-        }`;
+        const welcomeMessage = `${pageInfo.title}! 🎉\n\n${pageInfo.description}\n\n${i18n.language === 'hi' ? 'शुरू करने के लिए कुछ टिप्स:' :
+            i18n.language === 'gu' ? 'શરૂ કરવા માટે કેટલીક ટિપ્સ:' :
+              i18n.language === 'mr' ? 'सुरू करण्यासाठी काही टिप्स:' :
+                'Here are some tips to get started:'
+          }\n${pageInfo.tips.map(tip => `• ${tip}`).join('\n')}\n\n${i18n.language === 'hi' ? 'कृपया कोई भी प्रश्न पूछने में संकोच न करें!' :
+            i18n.language === 'gu' ? 'કૃપા કરીને કોઈપણ પ્રશ્ન પૂછવામાં સંકોચ ન કરો!' :
+              i18n.language === 'mr' ? 'कृपया कोणताही प्रश्न विचारण्यास संकोच करू नका!' :
+                'Feel free to ask me any questions!'
+          }`;
 
         setMessages([{
           role: 'assistant',
           content: welcomeMessage
         }]);
       } else {
-        const defaultMessage = i18n.language === 'hi' ? 
+        const defaultMessage = i18n.language === 'hi' ?
           "स्वागत है! मैं Verifai के बारे में आपके किसी भी प्रश्न में मदद करने के लिए यहां हूं। आप क्या जानना चाहेंगे?" :
-          i18n.language === 'gu' ? 
-          "સ્વાગત છે! હું Verifai વિશે તમારા કોઈપણ પ્રશ્નોમાં મદદ કરવા માટે અહીં છું. તમે શું જાણવા માંગો છો?" :
-          i18n.language === 'mr' ? 
-          "स्वागत आहे! मी Verifai बद्दल तुमच्या कोणत्याही प्रश्नांमध्ये मदत करण्यासाठी येथे आहे. तुम्हाला काय जाणून घ्यायचे आहे?" :
-          "Welcome! I'm here to help you with any questions about Verifai. What would you like to know?";
+          i18n.language === 'gu' ?
+            "સ્વાગત છે! હું Verifai વિશે તમારા કોઈપણ પ્રશ્નોમાં મદદ કરવા માટે અહીં છું. તમે શું જાણવા માંગો છો?" :
+            i18n.language === 'mr' ?
+              "स्वागत आहे! मी Verifai बद्दल तुमच्या कोणत्याही प्रश्नांमध्ये मदत करण्यासाठी येथे आहे. तुम्हाला काय जाणून घ्यायचे आहे?" :
+              "Welcome! I'm here to help you with any questions about Verifai. What would you like to know?";
 
         setMessages([{
           role: 'assistant',
@@ -632,24 +630,21 @@ Keep responses helpful, concise, and professional. Avoid using asterisks or Mark
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: index * 0.1 }}
-                      className={`flex items-start gap-3 ${
-                        message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
-                      }`}
+                      className={`flex items-start gap-3 ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
+                        }`}
                     >
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                        message.role === 'assistant' ? 'bg-primary/10' : 'bg-secondary'
-                      }`}>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${message.role === 'assistant' ? 'bg-primary/10' : 'bg-secondary'
+                        }`}>
                         {message.role === 'assistant' ? (
                           <Bot className="h-5 w-5 text-primary" />
                         ) : (
                           <User className="h-5 w-5" />
                         )}
                       </div>
-                      <div className={`rounded-lg p-3 max-w-[80%] ${
-                        message.role === 'assistant' 
-                          ? 'bg-card/40 backdrop-blur-sm border border-border/50' 
+                      <div className={`rounded-lg p-3 max-w-[80%] ${message.role === 'assistant'
+                          ? 'bg-card/40 backdrop-blur-sm border border-border/50'
                           : 'bg-primary text-primary-foreground'
-                      }`}>
+                        }`}>
                         {message.content === '' ? (
                           <MessageSkeleton />
                         ) : (
@@ -671,9 +666,9 @@ Keep responses helpful, concise, and professional. Avoid using asterisks or Mark
                     onKeyPress={handleKeyPress}
                     placeholder={
                       i18n.language === 'hi' ? "अपना संदेश टाइप करें..." :
-                      i18n.language === 'gu' ? "તમારો સંદેશ ટાઈપ કરો..." :
-                      i18n.language === 'mr' ? "तुमचा संदेश टाइप करा..." :
-                      "Type your message..."
+                        i18n.language === 'gu' ? "તમારો સંદેશ ટાઈપ કરો..." :
+                          i18n.language === 'mr' ? "तुमचा संदेश टाइप करा..." :
+                            "Type your message..."
                     }
                     className="w-full pr-12 pl-4 py-2 bg-background/40 backdrop-blur-sm border border-input/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     rows={2}
@@ -726,7 +721,7 @@ export const SocialPage = () => {
   };
 
   const handleLike = (postId: string) => {
-    setPosts(posts.map(post => 
+    setPosts(posts.map(post =>
       post.id === postId ? { ...post, likes: post.likes + 1 } : post
     ));
   };
@@ -736,15 +731,15 @@ export const SocialPage = () => {
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">
           {i18n.language === 'hi' ? 'समुदाय फीड' :
-           i18n.language === 'gu' ? 'સમુદાય ફીડ' :
-           i18n.language === 'mr' ? 'समुदाय फीड' :
-           'Community Feed'}
+            i18n.language === 'gu' ? 'સમુદાય ફીડ' :
+              i18n.language === 'mr' ? 'समुदाय फीड' :
+                'Community Feed'}
         </h1>
         <p className="text-lg text-muted-foreground mb-12 text-center">
           {i18n.language === 'hi' ? 'नकली समाचारों के बारे में जागरूकता फैलाएं और समुदाय के साथ जानकारी साझा करें।' :
-           i18n.language === 'gu' ? 'નકલી સમાચારો વિશે જાગૃતિ ફેલાવો અને સમુદાય સાથે માહિતી શેર કરો.' :
-           i18n.language === 'mr' ? 'खोट्या बातम्यांबद्दल जागरूकता पसरवा आणि समुदायासह माहिती सामायिक करा.' :
-           'Spread awareness about fake news and share information with the community.'}
+            i18n.language === 'gu' ? 'નકલી સમાચારો વિશે જાગૃતિ ફેલાવો અને સમુદાય સાથે માહિતી શેર કરો.' :
+              i18n.language === 'mr' ? 'खोट्या बातम्यांबद्दल जागरूकता पसरवा आणि समुदायासह माहिती सामायिक करा.' :
+                'Spread awareness about fake news and share information with the community.'}
         </p>
 
         {/* Post Form */}
@@ -757,9 +752,9 @@ export const SocialPage = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder={
                   i18n.language === 'hi' ? 'उपयोगकर्ता नाम (वैकल्पिक)' :
-                  i18n.language === 'gu' ? 'વપરાશકર્તા નામ (વૈકલ્પિક)' :
-                  i18n.language === 'mr' ? 'वापरकर्ता नाव (पर्यायी)' :
-                  'Username (optional)'
+                    i18n.language === 'gu' ? 'વપરાશકર્તા નામ (વૈકલ્પિક)' :
+                      i18n.language === 'mr' ? 'वापरकर्ता नाव (पर्यायी)' :
+                        'Username (optional)'
                 }
                 className="w-full px-4 py-2 bg-background/40 border border-input/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -770,9 +765,9 @@ export const SocialPage = () => {
                 onChange={(e) => setNewPost(e.target.value)}
                 placeholder={
                   i18n.language === 'hi' ? 'नकली समाचार जागरूकता के बारे में कुछ साझा करें...' :
-                  i18n.language === 'gu' ? 'નકલી સમાચાર જાગૃતિ વિશે કંઈક શેર કરો...' :
-                  i18n.language === 'mr' ? 'खोट्या बातम्या जागरूकतेबद्दल काहीतरी शेअर करा...' :
-                  'Share something about fake news awareness...'
+                    i18n.language === 'gu' ? 'નકલી સમાચાર જાગૃતિ વિશે કંઈક શેર કરો...' :
+                      i18n.language === 'mr' ? 'खोट्या बातम्या जागरूकतेबद्दल काहीतरी शेअर करा...' :
+                        'Share something about fake news awareness...'
                 }
                 className="w-full px-4 py-2 bg-background/40 border border-input/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 rows={4}
@@ -783,9 +778,9 @@ export const SocialPage = () => {
                 disabled={!newPost.trim()}
               >
                 {i18n.language === 'hi' ? 'पोस्ट करें' :
-                 i18n.language === 'gu' ? 'પોસ્ટ કરો' :
-                 i18n.language === 'mr' ? 'पोस्ट करा' :
-                 'Post'}
+                  i18n.language === 'gu' ? 'પોસ્ટ કરો' :
+                    i18n.language === 'mr' ? 'पोस्ट करा' :
+                      'Post'}
               </Button>
             </div>
           </div>
@@ -796,9 +791,9 @@ export const SocialPage = () => {
           {posts.length === 0 ? (
             <p className="text-center text-muted-foreground">
               {i18n.language === 'hi' ? 'कोई पोस्ट अभी तक नहीं। पहला बनें!' :
-               i18n.language === 'gu' ? 'હજી સુધી કોઈ પોસ્ટ નથી. પ્રથમ બનો!' :
-               i18n.language === 'mr' ? 'अद्याप कोणतीही पोस्ट नाही. प्रथम व्हा!' :
-               'No posts yet. Be the first!'}
+                i18n.language === 'gu' ? 'હજી સુધી કોઈ પોસ્ટ નથી. પ્રથમ બનો!' :
+                  i18n.language === 'mr' ? 'अद्याप कोणतीही पोस्ट नाही. प्रथम व्हा!' :
+                    'No posts yet. Be the first!'}
             </p>
           ) : (
             posts.map(post => (
@@ -824,15 +819,15 @@ export const SocialPage = () => {
                   </Button>
                   <Button variant="ghost" size="sm">
                     {i18n.language === 'hi' ? 'टिप्पणी' :
-                     i18n.language === 'gu' ? 'ટિપ્પણી' :
-                     i18n.language === 'mr' ? 'टिप्पणी' :
-                     'Comment'}
+                      i18n.language === 'gu' ? 'ટિપ્પણી' :
+                        i18n.language === 'mr' ? 'टिप्पणी' :
+                          'Comment'}
                   </Button>
                   <Button variant="ghost" size="sm">
                     {i18n.language === 'hi' ? 'रिपोर्ट' :
-                     i18n.language === 'gu' ? 'રિપોર્ટ' :
-                     i18n.language === 'mr' ? 'रिपोर्ट' :
-                     'Report'}
+                      i18n.language === 'gu' ? 'રિપોર્ટ' :
+                        i18n.language === 'mr' ? 'रिपोर्ट' :
+                          'Report'}
                   </Button>
                 </div>
               </div>

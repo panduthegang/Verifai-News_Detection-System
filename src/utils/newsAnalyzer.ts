@@ -128,13 +128,12 @@ const calculateContentStatistics = async (text: string): Promise<ContentStatisti
   // Use Gemini to extract keywords with language support
   let topKeywords: string[] = [];
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const prompt = `Analyze this text and extract the 5 most important keywords or key phrases that best represent its main topics and themes. ${
-      i18n.language === 'gu' ? 'Provide the response in Gujarati.' :
-      i18n.language === 'hi' ? 'Provide the response in Hindi.' :
-      i18n.language === 'mr' ? 'Provide the response in Marathi.' :
-      'Provide the response in English.'
-    }
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const prompt = `Analyze this text and extract the 5 most important keywords or key phrases that best represent its main topics and themes. ${i18n.language === 'gu' ? 'Provide the response in Gujarati.' :
+        i18n.language === 'hi' ? 'Provide the response in Hindi.' :
+          i18n.language === 'mr' ? 'Provide the response in Marathi.' :
+            'Provide the response in English.'
+      }
 
 Text to analyze: "${text}"
 
@@ -143,7 +142,7 @@ Response format example:
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim();
-    
+
     try {
       const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       const jsonString = jsonMatch ? jsonMatch[0] : responseText;
@@ -161,7 +160,7 @@ Response format example:
   const lang = i18n.language as keyof typeof emotionalWords['positive'];
   const emotionalTone = Object.entries(emotionalWords).reduce((acc, [tone, langs]) => {
     const words = langs[lang] || langs.en;
-    const count = words.reduce((sum, word) => 
+    const count = words.reduce((sum, word) =>
       sum + (text.toLowerCase().match(new RegExp(`\\b${word}\\b`, 'gi'))?.length || 0), 0);
     return { ...acc, [tone]: count };
   }, {} as Record<string, number>);
@@ -203,12 +202,12 @@ const extractKeywords = (text: string): string[] => {
 
   const words = text.toLowerCase().split(/\s+/);
   const wordFrequency: Record<string, number> = {};
-  
+
   words.forEach((word, index) => {
     const cleanWord = word.replace(/[^\p{L}\p{N}']/gu, '');
     if (cleanWord && cleanWord.length > 2 && !STOP_WORDS.has(cleanWord)) {
       wordFrequency[cleanWord] = (wordFrequency[cleanWord] || 0) + 1;
-      
+
       if (index < words.length - 1) {
         const nextWord = words[index + 1].replace(/[^\p{L}\p{N}']/gu, '');
         if (nextWord && !STOP_WORDS.has(nextWord)) {
@@ -229,7 +228,7 @@ const extractKeywords = (text: string): string[] => {
 const analyzeTimeline = (text: string) => {
   const datePattern = /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?\s*,?\s*\d{4}\b/gi;
   const dates = text.match(datePattern) || [];
-  
+
   return {
     datesFound: dates,
     hasInconsistencies: dates.length > 1 && new Set(dates).size !== dates.length,
@@ -262,25 +261,25 @@ const getRelevantArticleSearches = (keywords: string[]) => {
     {
       url: `${TRUSTED_SOURCES.reuters.searchUrl}${searchQuery}`,
       title: i18n.language === 'gu' ? 'સંબંધિત લેખો માટે Reuters શોધો' :
-             i18n.language === 'hi' ? 'संबंधित लेखों के लिए Reuters खोजें' :
-             i18n.language === 'mr' ? 'संबंधित लेखांसाठी Reuters शोधा' :
-             'Search Reuters for related articles',
+        i18n.language === 'hi' ? 'संबंधित लेखों के लिए Reuters खोजें' :
+          i18n.language === 'mr' ? 'संबंधित लेखांसाठी Reuters शोधा' :
+            'Search Reuters for related articles',
       reliability: TRUSTED_SOURCES.reuters.reliability
     },
     {
       url: `${TRUSTED_SOURCES.ap.searchUrl}${searchQuery}`,
       title: i18n.language === 'gu' ? 'સંબંધિત કવરેજ માટે AP News શોધો' :
-             i18n.language === 'hi' ? 'संबंधित कवरेज के लिए AP News खोजें' :
-             i18n.language === 'mr' ? 'संबंधित कव्हरेजसाठी AP News शोधा' :
-             'Find related AP News coverage',
+        i18n.language === 'hi' ? 'संबंधित कवरेज के लिए AP News खोजें' :
+          i18n.language === 'mr' ? 'संबंधित कव्हरेजसाठी AP News शोधा' :
+            'Find related AP News coverage',
       reliability: TRUSTED_SOURCES.ap.reliability
     },
     {
       url: `${TRUSTED_SOURCES.bbc.searchUrl}${searchQuery}`,
       title: i18n.language === 'gu' ? 'સમાન વાર્તાઓ માટે BBC News શોધો' :
-             i18n.language === 'hi' ? 'समान कहानियों के लिए BBC News खोजें' :
-             i18n.language === 'mr' ? 'समान कथांसाठी BBC News शोधा' :
-             'Search BBC News for similar stories',
+        i18n.language === 'hi' ? 'समान कहानियों के लिए BBC News खोजें' :
+          i18n.language === 'mr' ? 'समान कथांसाठी BBC News शोधा' :
+            'Search BBC News for similar stories',
       reliability: TRUSTED_SOURCES.bbc.reliability
     }
   ];
@@ -289,21 +288,21 @@ const getRelevantArticleSearches = (keywords: string[]) => {
 // Main text analysis function
 export const analyzeText = async (text: string): Promise<AnalysisResult> => {
   if (!import.meta.env.VITE_GEMINI_API_KEY) {
-    const message = i18n.language === 'gu' ? 
+    const message = i18n.language === 'gu' ?
       'API કી કન્ફિગર કરેલી નથી. કૃપા કરીને તમારી Gemini API કી .env ફાઈલમાં ઉમેરો.' :
       i18n.language === 'hi' ?
-      'API कुंजी कॉन्फ़िगर नहीं की गई है। कृपया अपनी Gemini API कुंजी .env फ़ाइल में जोड़ें।' :
-      i18n.language === 'mr' ?
-      'API की कॉन्फिगर केलेली नाही. कृपया तुमची Gemini API की .env फाइलमध्ये जोडा.' :
-      'API key not configured. Please add your Gemini API key to the .env file.';
+        'API कुंजी कॉन्फ़िगर नहीं की गई है। कृपया अपनी Gemini API कुंजी .env फ़ाइल में जोड़ें।' :
+        i18n.language === 'mr' ?
+          'API की कॉन्फिगर केलेली नाही. कृपया तुमची Gemini API की .env फाइलमध्ये जोडा.' :
+          'API key not configured. Please add your Gemini API key to the .env file.';
 
     const suggestion = i18n.language === 'gu' ?
       'Google AI Studio (https://makersuite.google.com/app/apikey) માંથી API કી મેળવો' :
       i18n.language === 'hi' ?
-      'Google AI Studio (https://makersuite.google.com/app/apikey) से API कुंजी प्राप्त करें' :
-      i18n.language === 'mr' ?
-      'Google AI Studio (https://makersuite.google.com/app/apikey) वरून API की मिळवा' :
-      'Get an API key from Google AI Studio (https://makersuite.google.com/app/apikey)';
+        'Google AI Studio (https://makersuite.google.com/app/apikey) से API कुंजी प्राप्त करें' :
+        i18n.language === 'mr' ?
+          'Google AI Studio (https://makersuite.google.com/app/apikey) वरून API की मिळवा' :
+          'Get an API key from Google AI Studio (https://makersuite.google.com/app/apikey)';
 
     return {
       credibilityScore: 0,
@@ -314,18 +313,18 @@ export const analyzeText = async (text: string): Promise<AnalysisResult> => {
         explanation: i18n.language === 'gu' ?
           'વિશ્લેષણ કરી શકાતું નથી: API કી ગુમ છે' :
           i18n.language === 'hi' ?
-          'विश्लेषण नहीं किया जा सकता: API कुंजी गायब है' :
-          i18n.language === 'mr' ?
-          'विश्लेषण करता येत नाही: API की गहाळ आहे' :
-          'Unable to perform analysis: Missing API key'
+            'विश्लेषण नहीं किया जा सकता: API कुंजी गायब है' :
+            i18n.language === 'mr' ?
+              'विश्लेषण करता येत नाही: API की गहाळ आहे' :
+              'Unable to perform analysis: Missing API key'
       },
       statistics: await calculateContentStatistics(text)
     };
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
     // First, calculate statistics to get keywords for Serper search
     const statistics = await calculateContentStatistics(text);
     const keywordsForSearch = statistics.topKeywords.join(' ');
@@ -346,9 +345,9 @@ export const analyzeText = async (text: string): Promise<AnalysisResult> => {
             reliability: 70,
             verificationDetails: [
               i18n.language === 'gu' ? 'આ લાઇવ શોધ પરિણામમાંથી માહિતી' :
-              i18n.language === 'hi' ? 'इस लाइव खोज परिणाम से जानकारी' :
-              i18n.language === 'mr' ? 'या थेट शोध परिणामातून माहिती' :
-              'Information from this live search result'
+                i18n.language === 'hi' ? 'इस लाइव खोज परिणाम से जानकारी' :
+                  i18n.language === 'mr' ? 'या थेट शोध परिणामातून माहिती' :
+                    'Information from this live search result'
             ]
           });
         });
@@ -356,12 +355,11 @@ export const analyzeText = async (text: string): Promise<AnalysisResult> => {
       }
     }
 
-    const prompt = `You are a fact-checking system that ONLY responds with valid JSON. Analyze the following content and provide the response in ${
-      i18n.language === 'gu' ? 'Gujarati' :
-      i18n.language === 'hi' ? 'Hindi' :
-      i18n.language === 'mr' ? 'Marathi' :
-      'English'
-    } language.
+    const prompt = `You are a fact-checking system that ONLY responds with valid JSON. Analyze the following content and provide the response in ${i18n.language === 'gu' ? 'Gujarati' :
+        i18n.language === 'hi' ? 'Hindi' :
+          i18n.language === 'mr' ? 'Marathi' :
+            'English'
+      } language.
 
 CRITICAL: Use the provided "Live Search Results" to inform your factual assessment and credibility score. Prioritize information from these live results if it directly contradicts or supports claims in the main text.
 
@@ -396,18 +394,18 @@ ${serperResultsContent}
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text().trim();
-    
+
     let analysis;
     try {
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       const jsonString = jsonMatch ? jsonMatch[0] : responseText;
       analysis = JSON.parse(jsonString);
-      
+
       const timelineAnalysis = analyzeTimeline(text);
       const citationAnalysis = analyzeCitations(text);
-      
+
       const relevantSources = getRelevantArticleSearches(statistics.topKeywords);
-      
+
       const combinedSources = [...serperSources, ...relevantSources].map(source => ({
         ...source,
         verificationDetails: source.verificationDetails || (i18n.language === 'gu' ? [
@@ -454,30 +452,30 @@ ${serperResultsContent}
       throw new Error(i18n.language === 'gu' ?
         `અમાન્ય પ્રતિસાદ ફોર્મેટ: ${parseError.message}` :
         i18n.language === 'hi' ?
-        `अमान्य प्रतिक्रिया प्रारूप: ${parseError.message}` :
-        i18n.language === 'mr' ?
-        `अवैध प्रतिसाद स्वरूप: ${parseError.message}` :
-        `Invalid response format: ${parseError.message}`
+          `अमान्य प्रतिक्रिया प्रारूप: ${parseError.message}` :
+          i18n.language === 'mr' ?
+            `अवैध प्रतिसाद स्वरूप: ${parseError.message}` :
+            `Invalid response format: ${parseError.message}`
       );
     }
   } catch (error) {
     console.error('Gemini API Error:', error);
-    
+
     const apiError = i18n.language === 'gu' ?
       'API ભૂલને કારણે વિશ્લેષણ કરી શકાતું નથી.' :
       i18n.language === 'hi' ?
-      'API त्रुटि के कारण विश्लेषण नहीं किया जा सकता.' :
-      i18n.language === 'mr' ?
-      'API त्रुटीमुळे विश्लेषण करता येत नाही.' :
-      'Unable to perform analysis due to an API error.';
+        'API त्रुटि के कारण विश्लेषण नहीं किया जा सकता.' :
+        i18n.language === 'mr' ?
+          'API त्रुटीमुळे विश्लेषण करता येत नाही.' :
+          'Unable to perform analysis due to an API error.';
 
     const keyCheck = i18n.language === 'gu' ?
       'કૃપા કરીને ખાતરી કરો કે તમારી API કી માન્ય છે અને પૂરતો કોટા છે.' :
       i18n.language === 'hi' ?
-      'कृपया सुनिश्चित करें कि आपकी API कुंजी मान्य है और पर्याप्त कोटा है।' :
-      i18n.language === 'mr' ?
-      'कृपया खात्री करा की तुमची API की वैध आहे आणि पुरेसा कोटा आहे.' :
-      'Please ensure your API key is valid and has sufficient quota.';
+        'कृपया सुनिश्चित करें कि आपकी API कुंजी मान्य है और पर्याप्त कोटा है।' :
+        i18n.language === 'mr' ?
+          'कृपया खात्री करा की तुमची API की वैध आहे आणि पुरेसा कोटा आहे.' :
+          'Please ensure your API key is valid and has sufficient quota.';
 
     const statistics = await calculateContentStatistics(text);
     const timelineAnalysis = analyzeTimeline(text);
@@ -510,10 +508,10 @@ ${serperResultsContent}
         explanation: i18n.language === 'gu' ?
           'વિશ્લેષણ ઉપલબ્ધ નથી: ' + (error.message || 'API ભૂલ') :
           i18n.language === 'hi' ?
-          'विश्लेषण उपलब्ध नहीं: ' + (error.message || 'API त्रुटि') :
-          i18n.language === 'mr' ?
-          'विश्लेषण उपलब्ध नाही: ' + (error.message || 'API त्रुटी') :
-          'Analysis unavailable: ' + (error.message || 'API Error')
+            'विश्लेषण उपलब्ध नहीं: ' + (error.message || 'API त्रुटि') :
+            i18n.language === 'mr' ?
+              'विश्लेषण उपलब्ध नाही: ' + (error.message || 'API त्रुटी') :
+              'Analysis unavailable: ' + (error.message || 'API Error')
       },
       statistics,
       timeline: timelineAnalysis,

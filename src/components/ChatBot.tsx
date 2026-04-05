@@ -46,7 +46,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
       const chat = model.startChat({
         history: messages.map(msg => ({
           role: msg.role,
@@ -106,14 +106,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 ${
-                  message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
-                }`}
+                className={`flex items-start gap-3 ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'
+                  }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.role === 'assistant' ? 'bg-primary/10' : 'bg-secondary/50'
-                  }`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'assistant' ? 'bg-primary/10' : 'bg-secondary/50'
+                    }`}
                 >
                   {message.role === 'assistant' ? (
                     <Bot className="h-5 w-5 text-primary" />
@@ -122,11 +120,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
                   )}
                 </div>
                 <div
-                  className={`rounded-2xl px-4 py-2 max-w-[80%] ${
-                    message.role === 'assistant'
+                  className={`rounded-2xl px-4 py-2 max-w-[80%] ${message.role === 'assistant'
                       ? 'bg-card border border-border'
                       : 'bg-primary text-primary-foreground'
-                  }`}
+                    }`}
                 >
                   <ReactMarkdown className="prose dark:prose-invert prose-sm">
                     {message.content}
