@@ -140,8 +140,15 @@ const RSS_FEEDS = [
   }
 ];
 
-// Define CORS proxy for fetching RSS feeds
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// Fallback CORS proxies (used only if rss2json fails)
+const CORS_PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.org/?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
+];
+
+// Primary: rss2json.com API endpoint (returns pre-parsed JSON, no CORS issues)
+const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
 // Function to infer news category based on title and content keywords
 const inferCategory = (title: string, content: string): string => {
@@ -153,6 +160,115 @@ const inferCategory = (title: string, content: string): string => {
   if (text.includes('health') || text.includes('medical') || text.includes('disease')) return 'Health';
   return 'General';
 };
+
+// Strip HTML tags from a string
+const stripHtml = (html: string): string =>
+  html.replace(/<\/?[^>]+(>|$)/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
+
+// Fetch feed via rss2json.com (primary, fastest, no CORS issues, returns JSON)
+async function fetchViaRss2Json(feedUrl: string, signal?: AbortSignal): Promise<NewsItem[]> {
+  const response = await fetch(`${RSS2JSON_API}${encodeURIComponent(feedUrl)}`, { signal });
+  if (!response.ok) throw new Error(`rss2json HTTP ${response.status}`);
+  const data = await response.json();
+  if (data.status !== 'ok') throw new Error('rss2json returned error status');
+
+  return (data.items || []).map((item: any) => {
+    const contentSnippet = stripHtml(item.description || item.content || '') || 'No content available';
+    const thumbnail = item.thumbnail || item.enclosure?.link || '';
+    const title = item.title || 'No title available';
+    return {
+      title,
+      link: item.link || '#',
+      pubDate: item.pubDate || new Date().toISOString(),
+      content: item.content || '',
+      contentSnippet,
+      source: '',
+      thumbnail,
+      category: inferCategory(title, contentSnippet),
+    };
+  });
+}
+
+// Fallback: Fetch via CORS proxy + parse XML
+async function fetchViaCorProxy(feedUrl: string, signal?: AbortSignal): Promise<NewsItem[]> {
+  for (const proxyFn of CORS_PROXIES) {
+    try {
+      const proxyUrl = proxyFn(feedUrl);
+      const response = await fetch(proxyUrl, { signal });
+      if (!response.ok) continue;
+      const xmlText = await response.text();
+      return parseRSS(xmlText);
+    } catch {
+      continue;
+    }
+  }
+  throw new Error('All CORS proxies failed');
+}
+
+// Fetch a single feed with rss2json primary and CORS-proxy fallback
+async function fetchFeed(feedUrl: string): Promise<NewsItem[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    // Try rss2json first (fast, reliable, no CORS)
+    const items = await fetchViaRss2Json(feedUrl, controller.signal);
+    if (items.length > 0) return items;
+    // If rss2json returned empty, try fallback
+    return await fetchViaCorProxy(feedUrl, controller.signal);
+  } catch {
+    // rss2json failed, try CORS proxies
+    try {
+      return await fetchViaCorProxy(feedUrl, controller.signal);
+    } catch {
+      throw new Error('All fetch methods failed');
+    }
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// Parse RSS feed XML into NewsItem objects (fallback parser)
+function parseRSS(xml: string): NewsItem[] {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) {
+      throw new Error('XML parsing failed: ' + parseError.textContent);
+    }
+
+    const items = Array.from(doc.querySelectorAll('item, entry'));
+
+    return items.map(item => {
+      const title = item.querySelector('title')?.textContent || 'No title available';
+      const link = item.querySelector('link')?.textContent ||
+                  item.querySelector('link')?.getAttribute('href') || '#';
+      const pubDate = item.querySelector('pubDate, published')?.textContent ||
+                     new Date().toISOString();
+      const content = item.querySelector('content\\:encoded, description, summary')?.textContent || '';
+      const contentSnippet = stripHtml(content) || 'No content available';
+      const thumbnail = item.querySelector('media\\:content, enclosure')?.getAttribute('url') || '';
+      const category = inferCategory(title, contentSnippet);
+
+      return {
+        title,
+        link,
+        pubDate,
+        content,
+        contentSnippet,
+        source: '',
+        thumbnail,
+        category,
+      };
+    });
+  } catch (error) {
+    console.error('RSS parsing error:', error);
+    return [];
+  }
+}
 
 // Skeleton component for loading state of news cards
 const NewsCardSkeleton = () => (
@@ -230,65 +346,6 @@ const ModernSelect = ({ value, onChange, options, placeholder, ariaLabel }) => (
     </div>
   </div>
 );
-
-// Fetch RSS feed using a CORS proxy to handle cross-origin issues
-async function fetchWithCorsProxy(url: string): Promise<Response> {
-  try {
-    const response = await fetch(CORS_PROXY + encodeURIComponent(url));
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response;
-  } catch (error) {
-    console.error(`Fetch error for ${url}:`, error);
-    throw error;
-  }
-}
-
-// Parse RSS feed XML into NewsItem objects
-function parseRSS(xml: string): NewsItem[] {
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xml, 'text/xml');
-    
-    const parseError = doc.querySelector('parsererror');
-    if (parseError) {
-      throw new Error('XML parsing failed: ' + parseError.textContent);
-    }
-    
-    const items = Array.from(doc.querySelectorAll('item, entry'));
-    
-    return items.map(item => {
-      const title = item.querySelector('title')?.textContent || 'No title available';
-      const link = item.querySelector('link')?.textContent || 
-                  item.querySelector('link')?.getAttribute('href') || '#';
-      const pubDate = item.querySelector('pubDate, published')?.textContent || 
-                     new Date().toISOString();
-      const content = item.querySelector('content\\:encoded, description, summary')?.textContent || '';
-      const contentSnippet = content
-        .replace(/<\/?[^>]+(>|$)/g, '')
-        .replace(/ /g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim() || 'No content available';
-      const thumbnail = item.querySelector('media\\:content, enclosure')?.getAttribute('url') || '';
-      const category = inferCategory(title, contentSnippet);
-
-      return {
-        title,
-        link,
-        pubDate,
-        content,
-        contentSnippet,
-        source: '',
-        thumbnail,
-        category,
-      };
-    });
-  } catch (error) {
-    console.error('RSS parsing error:', error);
-    return [];
-  }
-}
 
 // NewsPage component: Fetches, displays, and analyzes news articles with filtering and pagination
 const NewsPage: React.FC = () => {
@@ -514,9 +571,7 @@ const NewsPage: React.FC = () => {
     try {
       await Promise.all(RSS_FEEDS.map(async feed => {
         try {
-          const response = await fetchWithCorsProxy(feed.url);
-          const xmlText = await response.text();
-          const items = parseRSS(xmlText);
+          const items = await fetchFeed(feed.url);
           
           if (items.length === 0) {
             throw new Error('No items found in feed');
